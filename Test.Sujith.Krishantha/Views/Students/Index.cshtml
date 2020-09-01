@@ -1,0 +1,208 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Student Registration Form</h2>
+
+<div class="panel panel-primary">
+    <div class="top-buffer"></div>
+    <div class="panel-heading panel-head">Students</div>
+    <div class="panel-body">
+        <div class="top-buffer"></div>
+        <table class="table table-bordered table-striped table-condensed" id="tbl">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Batch</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<br />
+
+<form class="form-horizontal" role="form">
+
+    <div class="form-group">
+        <label for="ID" class="col-sm-3 control-label">ID</label>
+        <div class="col-sm-9">
+            <input type="text" id="id" name="ID" class="form-control" readonly />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="name" class="col-sm-3 control-label">Name</label>
+        <div class="col-sm-9">
+            <input type="text" id="name" name="name" class="form-control" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="email" class="col-sm-3 control-label">Email</label>
+        <div class="col-sm-9">
+            <input type="text" id="email" name="email" class="form-control" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="contact" class="col-sm-3 control-label">Contact</label>
+        <div class="col-sm-9">
+            <input type="text" id="contact" name="contact" class="form-control" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="batch" class="col-sm-3 control-label">Batch</label>
+        <select class="form-control col-sm-3" id="batchsDropdown" name="batchsDropdown"></select>
+    </div>
+
+
+    <div class="col-sm-offset-3 col-sm-9">
+        <button type="button" class="btn btn-primary" onclick="return Save();">Add</button>
+        <button type="button" class="btn btn-primary" onclick="return Update();">Update</button>
+        <button type="button" class="btn btn-primary" onclick="return Clear();">Clear</button>
+
+    </div>
+
+</form>
+
+
+<form id="myForm">
+    <label for="batchsDropdown"><b>Batch</b></label>
+    <select class="form-control" id="batchsDropdown" name="batchsDropdown"></select>
+</form>
+
+@section Scripts{
+    @Scripts.Render("~/bundles/jquery")
+    <script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+
+    <link href="https://cdn.datatables.net/1.10.15/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/responsive/2.1.1/css/responsive.bootstrap.min.css" rel="stylesheet" />
+
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap4.min.js "></script>
+    <script>
+
+        $(document).ready(function () {
+            $("#tbl").DataTable({
+                "processing": true, // for show progress bar
+                "serverSide": true, // for process server side
+                "filter": true, // this is for disable filter (search box)
+                "orderMulti": false, // for disable multiple column at once
+                "pageLength": 5,
+
+                "ajax": {
+                    "url": '@Url.Action("GetAllStudents", "Students")',
+                    "type": "POST",
+                    "datatype": "json"
+                },
+                "columns": [
+                { "data": "Id", "name": "Id", "autoWidth": true },
+                { "data": "Name", "name": "Name", "autoWidth": true },
+                { "data": "Email", "name": "Email", "autoWidth": true },
+                { "data": "Contact", "name": "Contact", "autoWidth": true },
+                { "data": null, "name": "Action", "render": function (data, type, row) { return "<a href='#' class='btn btn-info' onclick=EditData('" + row.Id + "'); >Edit</a> <a href='#' class='btn btn-danger' onclick=DeleteData('" + row.Id + "'); >Delete</a>";}, "autoWidth": true }
+
+            ]
+
+            })
+        });
+
+        function Save() {
+            var t = {
+                Name: $("#name").val(),
+                Email: $("#email").val(),
+                Contact: $("#contact").val()
+            };
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("save", "Students")',
+                datatype: "Json",
+                data: JSON.stringify(t),
+                contentType: "application/json",
+                success: function (data) {
+                    oTable = $('#tbl').DataTable();
+                    oTable.draw();
+                }
+            })
+        }
+
+        function Clear() {
+            $("#id").val("");
+            $("#name").val("");
+            $("#email").val("");
+            $("#contact").val("");
+        }
+
+        function Update() {
+            var t = {
+                id: $("#id").val(),
+                Name: $("#name").val(),
+                Email: $("#email").val(),
+                Contact: $("#contact").val()
+            };
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("update", "Students")',
+                datatype: "Json",
+                data: JSON.stringify(t),
+                contentType: "application/json",
+                success: function (data) {
+                    oTable = $('#tbl').DataTable();
+                    oTable.draw();
+                }
+            })
+        }
+
+        function EditData(Id) {
+            $.ajax({
+                type: "GET",
+                url: "/Students/edit/" + Id,
+                datatype: "Json",
+                success: function (data) {
+                    $("#id").val(data[0].Id);
+                    $("#name").val(data[0].Name);
+                    $("#email").val(data[0].Email);
+                    $("#contact").val(data[0].Contact);
+                }
+            })
+        }
+
+        function DeleteData(Id) {
+            $.ajax({
+                type: "GET",
+                url: "/Students/delete/" + Id,
+                datatype: "Json",
+                success: function (data) {
+                    oTable = $('#tbl').DataTable();
+                    oTable.draw();
+                }
+            })
+        }
+
+         function getBatchData() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("getAll", "Batches")',
+                datatype: "Json",
+                success: function (data) {
+                   var s = '<option value="-1">Please Select a Batch</option>';  
+               for (var i = 0; i < data.length; i++) {  
+                   s += '<option value="' + data[i].Batch + '">' + data[i].Batch + '</option>';  
+               }  
+               $("#batchsDropdown").html(s);  
+                }
+            })
+        }
+
+
+
+    </script>
+}
+
