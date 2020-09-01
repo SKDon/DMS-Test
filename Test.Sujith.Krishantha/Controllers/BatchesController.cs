@@ -10,20 +10,31 @@ namespace Test.Sujith.Krishantha.Controllers
     public class BatchesController : Controller
     {
         private CRUDContext context = new CRUDContext();
-        // GET: Batches
-        public ActionResult Index()
-        {
-            return View();
-        }
 
-        public JsonResult getAll()
+        public ActionResult getAll()
         {
-
+            
             return Json(context.Classes.Select(x => new
             {
-                ID = x.Id,
-                Batch = x.Batch
+                x.Id,
+                x.Batch
             }).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult Delete(int Id)
+        {
+            var rec = from stu in context.Students
+                      join cl in context.Classes on stu.Class_Id equals cl.Id
+                      where stu.Class_Id == Id
+                      select new { stu, cl};
+
+            foreach (var i in rec)
+            {
+                context.Students.Remove(i.stu);
+                //context.Classes.Remove(i.cl);
+            }
+            context.SaveChanges();
+            return Json(rec, JsonRequestBehavior.AllowGet);
         }
     }
 }

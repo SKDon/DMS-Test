@@ -33,7 +33,7 @@ namespace Test.Sujith.Krishantha.Controllers
             int recordsTotal = 0;
 
             var studentData = (from tempstudent in context.Students
-                                select tempstudent);
+                               select tempstudent);
 
             //Sorting  
             if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
@@ -123,6 +123,31 @@ namespace Test.Sujith.Krishantha.Controllers
             {
                 return Json(new { success = false });
             }
+        }
+
+        // GET: Students1/Create
+        public ActionResult Create()
+        {
+            ViewBag.Class_Id = new SelectList(context.Classes, "Id", "Batch");
+            return View();
+        }
+
+        // POST: Students1/Create
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create([Bind(Include = "Id,Name,Email,Contact,Class_Id")] Student student)
+        {
+            if (ModelState.IsValid)
+            {
+                context.Students.Add(student);
+                context.SaveChanges();
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Class_Id = new SelectList(context.Classes, "Id", "Batch", student.Class_Id);
+            return View(student);
         }
     }
 }
